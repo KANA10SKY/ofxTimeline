@@ -47,7 +47,11 @@ class ofxTLTicker : public ofxTLTrack
 	ofxTLTicker();
 	~ofxTLTicker();
 	
-	void draw();
+    void draw();
+    
+    //!Function that allows to avoid drawing tickerMarks as they consume high resources
+	void draw(bool drawTickerMarks);
+    
 	
 	//set the draw rect for the whole keyframer interface
 	virtual void setTotalDrawRect(ofRectangle drawRect);
@@ -66,10 +70,15 @@ class ofxTLTicker : public ofxTLTrack
 	virtual void setHoverTime(unsigned long long millis);
 
 	bool getIsScrubbing();
+    
+    void updateBPMPoints();
+    
+    void addMarker(float millis);
+    void clearMarkers();
 	
   protected:
 	void updateTimelinePosition();
-	void updateBPMPoints();
+	
 
 	ofRectangle totalDrawRect;
 	vector<ofxTLBPMPoint> bpmScreenPoints;
@@ -81,5 +90,6 @@ class ofxTLTicker : public ofxTLTrack
 	bool playOnMouseReleased;
     
 	ofPath tickerMarks;
+    ofPath customMarkers;///twk
 	void refreshTickMarks();
 };

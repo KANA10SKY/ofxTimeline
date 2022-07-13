@@ -90,7 +90,7 @@ void ofxTLSwitches::draw(){
 	//play solo change
 	if(isOn()){
 		ofSetColor(timeline->getColors().disabledColor, 20+(1-powf(sin(ofGetElapsedTimef()*5)*.5+.5,2))*20);
-		ofRect(bounds);
+		ofDrawRectangle(bounds);
 	}
 
     for(int i = 0; i < keyframes.size(); i++){
@@ -113,7 +113,7 @@ void ofxTLSwitches::draw(){
 	        ofSetColor(timeline->getColors().keyColor);    
         }
 
-        ofLine(switchKey->display.x, bounds.y, 
+        ofDrawLine(switchKey->display.x, bounds.y, 
                switchKey->display.x, bounds.y+bounds.height);
 
         if(keyIsSelected || switchKey->endSelected){
@@ -122,7 +122,7 @@ void ofxTLSwitches::draw(){
         else{
 	        ofSetColor(timeline->getColors().keyColor);    
         }        
-        ofLine(switchKey->display.x+switchKey->display.width, bounds.y, 
+        ofDrawLine(switchKey->display.x+switchKey->display.width, bounds.y, 
                switchKey->display.x+switchKey->display.width, bounds.y+bounds.height);
 
         //draw region
@@ -142,7 +142,7 @@ void ofxTLSwitches::draw(){
                 else{
                     ofSetColor(timeline->getColors().keyColor);
                 }
-                ofRect(switchKey->display.x-2, bounds.y, 4, bounds.height);
+                ofDrawRectangle(switchKey->display.x-2, bounds.y, 4, bounds.height);
                 ofPopStyle();
             }
             else if(endHover){
@@ -153,7 +153,7 @@ void ofxTLSwitches::draw(){
                 else{
                     ofSetColor(timeline->getColors().keyColor);
                 }
-                ofRect(switchKey->display.x+switchKey->display.width-2, bounds.y, 4.0, bounds.height);
+                ofDrawRectangle(switchKey->display.x+switchKey->display.width-2, bounds.y, 4.0, bounds.height);
                 ofPopStyle();
             }
             else {
@@ -164,7 +164,7 @@ void ofxTLSwitches::draw(){
                 }
             }
         }
-        ofRect(switchKey->display);
+        ofDrawRectangle(switchKey->display);
     }
     
     ofFill();
@@ -178,7 +178,7 @@ void ofxTLSwitches::draw(){
 			int textHeight = bounds.y + 10 + ( (20*i) % int(MAX(bounds.height-15, 15)));
 			switchKey->textFieldDisplay = ofRectangle(MIN(screenX+3, bounds.getMaxX() - switchKey->textField.bounds.width),
 									   textHeight-10, 100, 15);
-			ofRect(switchKey->textFieldDisplay);
+			ofDrawRectangle(switchKey->textFieldDisplay);
 			
 			ofSetColor(timeline->getColors().textColor);
 			
@@ -247,7 +247,7 @@ bool ofxTLSwitches::mousePressed(ofMouseEventArgs& args, long millis){
         if(!ofGetModifierSelection()){
             timeline->unselectAll();
         }
-		if(ofGetModifierSelection() && clickedTextField->textField.isEditing()){
+		if(ofGetModifierSelection() && clickedTextField->textField.getIsEditing()){
 			clickedTextField->textField.endEditing();
 		}
 		else{
@@ -507,7 +507,7 @@ void ofxTLSwitches::mouseReleased(ofMouseEventArgs& args, long millis){
 		else{
 			enteringText = false;
 			for(int i = 0; i < selectedKeyframes.size(); i++){
-				enteringText = enteringText || ((ofxTLSwitch*)selectedKeyframes[i])->textField.isEditing();
+				enteringText = enteringText || ((ofxTLSwitch*)selectedKeyframes[i])->textField.getIsEditing();
 			}
 		}
         
@@ -530,6 +530,8 @@ void ofxTLSwitches::keyPressed(ofKeyEventArgs& args){
             timeline->dismissedModalContent();
             timeline->flagTrackModified(this);
         }
+        //github.com/YCAMInterlab/ofxTimeline/issues/135#issuecomment-247581860
+        clickedTextField->textField.keyPressed(args); // <-- Line I added to pass the key args to the TextInputField
     } else {
         ofxTLKeyframes::keyPressed(args);
     }
@@ -613,7 +615,7 @@ void ofxTLSwitches::storeKeyframe(ofxTLKeyframe* key, ofxXmlSettings& xmlStore){
 
 void ofxTLSwitches::willDeleteKeyframe(ofxTLKeyframe* keyframe){
 	ofxTLSwitch* switchKey = (ofxTLSwitch* )keyframe;
-	if(switchKey->textField.isEditing()){
+	if(switchKey->textField.getIsEditing()){
 		timeline->dismissedModalContent();
 		timeline->flagTrackModified(this);
 	}

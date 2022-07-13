@@ -53,7 +53,9 @@ class ofxTLPage {
 	virtual void setup();
 	virtual void update();
 	virtual void draw();
-
+    
+    virtual void drawWhenNotDragging();///twk
+    
 	virtual void setName(string name);
 	virtual string getName();
 	
@@ -70,6 +72,8 @@ class ofxTLPage {
 	void evenlyDistributeTrackHeights();
 	void expandFocusedTrack();
 	void setExpandToHeight(float height);
+    
+    void setTrackHeight(float height);
 		
 	virtual void setZoomBounds(ofRange zoomBounds);
 	
@@ -87,6 +91,8 @@ class ofxTLPage {
 	virtual void addTrack(string name, ofxTLTrack* track);
 	virtual ofxTLTrack* getTrack(string name);
     virtual ofxTLTrackHeader* getTrackHeader(ofxTLTrack* track);
+    
+    virtual int getTracksNum(){return trackList.size();}
     
 	virtual void removeTrack(ofxTLTrack* track);
 
@@ -133,6 +139,8 @@ class ofxTLPage {
     virtual void setSnappingEnabled(bool enabled);
     
     ofxTimeline* timeline;
+    
+    bool getFooterIsDragging(){return footerIsDragging;}///twk
     
   protected:
 

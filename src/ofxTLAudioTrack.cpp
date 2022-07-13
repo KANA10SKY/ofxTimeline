@@ -131,22 +131,39 @@ void ofxTLAudioTrack::draw(){
     ofPopStyle();
 	
 
-    
+    //fft draw in audioTrack
+    if(bDrawFFT){
+        ofPushStyle();
+        
+        //will refresh fft bins for other calls too
+        vector<float>& bins = getFFT();
+        float binWidth = bounds.width / bins.size();
+        
+        ofFill();
+        ofSetColor(timeline->getColors().disabledColor, 120);
+        for(int i = 0; i < bins.size(); i++){
+            float height = MIN(bounds.height * bins[i], bounds.height);
+            float y = bounds.y + bounds.height - height;
+            ofDrawRectangle(i*binWidth, y, binWidth, height);
+        }
+        
+        ofPopStyle();
+    }
+}
+
+///twk
+void ofxTLAudioTrack::drawWaveforms(){
+
     ofPushStyle();
     
-    //will refresh fft bins for other calls too
-    vector<float>& bins = getFFT();
-    float binWidth = bounds.width / bins.size();
+    ofSetColor(120);//arbitrary color
     
-    ofFill();
-    ofSetColor(timeline->getColors().disabledColor, 120);
-    for(int i = 0; i < bins.size(); i++){
-        float height = MIN(bounds.height * bins[i], bounds.height);
-        float y = bounds.y + bounds.height - height;
-        ofRect(i*binWidth, y, binWidth, height);
+    for(int i=0; i<previews.size(); i++){
+        previews[i].draw();
     }
-    
     ofPopStyle();
+    
+    viewIsDirty = false;
 }
 
 float ofxTLAudioTrack::positionForSecond(float second){
@@ -177,7 +194,7 @@ void ofxTLAudioTrack::recomputePreview(){
 			float pointInTrack = screenXtoNormalizedX( i ) * normalizationRatio; //will scale the screenX into wave's 0-1.0
 			float trackCenter = bounds.y + trackHeight * (c+1);
 			
-			ofPoint * vertex = & preview.getVertices()[ (i - bounds.x) * 2];
+			auto * vertex = & preview.getVertices()[ (i - bounds.x) * 2];
 			
 			if(pointInTrack >= 0 && pointInTrack <= 1.0){
 				//draw sample at pointInTrack * waveDuration;
@@ -443,6 +460,19 @@ int ofxTLAudioTrack::getBufferSize()
 {
     return player.getBuffer().size() / player.getNumChannels();
 }
+//--------------------------------------
+ofSoundBuffer& ofxTLAudioTrack::getCurrentSoundBuffer(int _size){
+    
+    soundBuffered =  player.getCurrentSoundBuffer(_size);
+    return soundBuffered;
+}
+//--------------------------------------
+ofSoundBuffer& ofxTLAudioTrack::getCurrentSoundBufferMono(int _size){
+    soundBuffered =  player.getCurrentSoundBufferMono(_size);
+    return soundBuffered;
+}
+
+//--------------------------------------
 
 vector<float>& ofxTLAudioTrack::getCurrentBuffer(int _size)
 {
@@ -450,6 +480,35 @@ vector<float>& ofxTLAudioTrack::getCurrentBuffer(int _size)
     return buffered;
 }
 
+//--------------------------------------
+vector<float>& ofxTLAudioTrack::getCurrentBufferForChannel(int _size, int channel){
+    buffered = player.getCurrentBufferForChannel(_size, channel);
+    return buffered;
+}
+//----------------------------
+ofSoundBuffer& ofxTLAudioTrack::getSoundBufferForFrame(int _frame, int _size){
+    
+    if(_frame != lastBufferPosition)
+    {
+        lastBufferPosition = _frame;
+        soundBuffered = player.getSoundBufferForFrame(_frame, timeline->getTimecode().getFPS(), _size);
+        return soundBuffered;
+    }
+    return soundBuffered;
+}
+
+//----------------------------
+ofSoundBuffer& ofxTLAudioTrack::getSoundBufferMonoForFrame(int _frame, int _size){
+    
+    if(_frame != lastBufferPosition)
+    {
+        lastBufferPosition = _frame;
+        soundBuffered = player.getSoundBufferMonoForFrame(_frame, timeline->getTimecode().getFPS(), _size);
+        return soundBuffered;
+    }
+    return soundBuffered;
+}
+//----------------------------
 vector<float>& ofxTLAudioTrack::getBufferForFrame(int _frame, int _size)
 {
     if(_frame != lastBufferPosition)

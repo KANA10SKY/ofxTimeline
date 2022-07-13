@@ -120,7 +120,8 @@ void ofxTLPage::update(){
 }
 
 void ofxTLPage::draw(){	
-	for(int i = 0; i < headers.size(); i++){
+	
+    for(int i = 0; i < headers.size(); i++){
 		tracks[headers[i]->name]->_draw();
 		headers[i]->draw();
 	}
@@ -131,7 +132,7 @@ void ofxTLPage::draw(){
 		set<unsigned long long>::iterator it;
 //		for(int i = 0; i < snapPoints.size(); i++){
 		for(it = snapPoints.begin(); it != snapPoints.end(); it++){
-			ofLine(timeline->millisToScreenX(*it), trackContainerRect.y,
+			ofDrawLine(timeline->millisToScreenX(*it), trackContainerRect.y,
                    timeline->millisToScreenX(*it), trackContainerRect.y+trackContainerRect.height);
 		}
 		ofPopStyle();
@@ -144,13 +145,53 @@ void ofxTLPage::draw(){
     if(draggingSelectionRectangle){
 		ofFill();
 		ofSetColor(timeline->getColors().keyColor, 30);
-		ofRect(selectionRectangle);
+		ofDrawRectangle(selectionRectangle);
 		
 		ofNoFill();
 		ofSetColor(timeline->getColors().keyColor, 255);
-		ofRect(selectionRectangle);
+		ofDrawRectangle(selectionRectangle);
 		
 	}
+    
+}
+
+///Twk: Hide tracks is footer is being dragged to save computation resources
+void ofxTLPage::drawWhenNotDragging(){
+    
+    for(int i = 0; i < headers.size(); i++){
+        ///Check for footer is dragging
+        if(!footerIsDragging){
+            tracks[headers[i]->name]->_draw();
+        }
+        headers[i]->draw();
+    }
+    
+    if(!headerHasFocus && !footerIsDragging && draggingInside && snapPoints.size() > 0){
+        ofPushStyle();
+        ofSetColor(255,255,255,100);
+        set<unsigned long long>::iterator it;
+        //		for(int i = 0; i < snapPoints.size(); i++){
+        for(it = snapPoints.begin(); it != snapPoints.end(); it++){
+            ofDrawLine(timeline->millisToScreenX(*it), trackContainerRect.y,
+                   timeline->millisToScreenX(*it), trackContainerRect.y+trackContainerRect.height);
+        }
+        ofPopStyle();
+    }
+    
+    //	for(int i = 0; i < headers.size(); i++){
+    //		tracks[headers[i]->name]->drawModalContent();
+    //	}
+    
+    if(draggingSelectionRectangle){
+        ofFill();
+        ofSetColor(timeline->getColors().keyColor, 30);
+        ofDrawRectangle(selectionRectangle);
+        
+        ofNoFill();
+        ofSetColor(timeline->getColors().keyColor, 255);
+        ofDrawRectangle(selectionRectangle);
+        
+    }
 }
 
 void ofxTLPage::timelineGainedFocus(){
@@ -344,6 +385,8 @@ void ofxTLPage::mouseReleased(ofMouseEventArgs& args, long millis){
 		}		        
     }
 	draggingSelectionRectangle = false;
+    
+    footerIsDragging = false;///twk. ????
 }
 
 void ofxTLPage::setDragOffsetTime(long offsetMillis){
@@ -531,6 +574,7 @@ ofxTLTrackHeader* ofxTLPage::getTrackHeader(ofxTLTrack* track){
 void ofxTLPage::setMinimalHeaders(bool minimal){
 	if(minimal != headersAreMinimal){
 		headersAreMinimal = minimal;
+        ofLogError("ofxTLPage::setMinimalHeaders") << "saveTrackPositions()";
 		recalculateHeight();
 	}
 }
@@ -538,6 +582,7 @@ void ofxTLPage::setMinimalHeaders(bool minimal){
 void ofxTLPage::hideFooters(bool hide){
 	if(hide != footersAreHidden){
 		footersAreHidden = hide;
+        ofLogError("ofxTLPage::hideFooters") << "saveTrackPositions()";
 		recalculateHeight();
 	}
 }
@@ -561,13 +606,22 @@ void ofxTLPage::expandFocusedTrack(){
 			headers[i]->collapseTrack();
 		}
 	}
-	
+	ofLogError("ofxTLPage::expandFocusedTrack") << "saveTrackPositions()";
 	recalculateHeight();
 }
 
 void ofxTLPage::setExpandToHeight(float height){
 	heightBeforeCollapse = height;
 }
+
+void ofxTLPage::setTrackHeight(float height){
+    ofRectangle trackRect = headers[0]->getTrack()->getDrawRect();
+    trackRect.height = height;
+    headers[0]->getTrack()->setDrawRect(trackRect);
+    ofLogError("ofxTLPage::setTrackHeight") << "saveTrackPositions()";
+    recalculateHeight();
+}
+
 
 void ofxTLPage::evenlyDistributeTrackHeights(){
 	float addedHeightPerTrack = 0;
@@ -585,7 +639,8 @@ void ofxTLPage::evenlyDistributeTrackHeights(){
 		headers[i]->getTrack()->setDrawRect(trackRect);
 	}
 	if(heightBeforeCollapse != 0){
-		recalculateHeight();
+		ofLogError("ofxTLPage::evenlyDistributeTrackHeights") << "saveTrackPositions()";
+        recalculateHeight();
 		heightBeforeCollapse = 0;
 	}
 
@@ -600,7 +655,7 @@ void ofxTLPage::collapseAllTracks(bool excludeFocusTrack){
 			headers[i]->collapseTrack();
 		}
 	}
-	
+	ofLogError("ofxTLPage::collapseAllTracks") << "saveTrackPositions()";
 	recalculateHeight();
 }
 
@@ -612,6 +667,7 @@ void ofxTLPage::bringTrackToTop(ofxTLTrack* track){
                 headers[j] = headers[j-1];
             }
             headers[0] = header;
+            ofLogError("ofxTLPage::bringTrackToTop") << "saveTrackPositions()";
             recalculateHeight();
             return;
         }
@@ -627,6 +683,7 @@ void ofxTLPage::bringTrackToBottom(ofxTLTrack* track){
                 headers[j] = headers[j+1];
             }
             headers[headers.size()-1] = header;
+            ofLogError("ofxTLPage::bringTrackToBottom") << "saveTrackPositions()";
             recalculateHeight();
             return;
         }
@@ -660,6 +717,7 @@ void ofxTLPage::removeTrack(ofxTLTrack* track){
             if(track->getCreatedByTimeline()){
                 delete track;
             }
+            ofLogError("ofxTLPage::removeTrack") << "saveTrackPositions()";
             recalculateHeight();
             return;
         }
@@ -744,10 +802,8 @@ void ofxTLPage::loadTrackPositions(){
 	string xmlPageName = name;
 	ofStringReplace(xmlPageName," ", "_");
 	string positionFileName = ofToDataPath(timeline->getWorkingFolder() + timeline->getName() + "_" + xmlPageName + "_trackPositions.xml");
+    //ofLogError("ofxTLPage::loadTrackPositions") << positionFileName;
 	if(trackPositions.loadFile(positionFileName)){
-		
-		//cout << "loading element position " << name << "_trackPositions.xml" << endl;
-		
 		trackPositions.pushTag("positions");
 		int numtracks = trackPositions.getNumTags("element");
 		for(int i = 0; i < numtracks; i++){
@@ -763,7 +819,7 @@ void ofxTLPage::loadTrackPositions(){
 		trackPositions.popTag();
 	}
 	else{
-		 ofLogVerbose("ofxTLPage::loadTrackPositions") << "Couldn't load position file";
+		 //ofLogVerbose("ofxTLPage::loadTrackPositions") << "Couldn't load position file";
 	}
 }
 
@@ -792,6 +848,7 @@ void ofxTLPage::saveTrackPositions(){
 	string xmlPageName = name;
 	ofStringReplace(xmlPageName," ", "_");
 	string trackPositionsFile = ofToDataPath(timeline->getWorkingFolder() + timeline->getName() + "_" +  xmlPageName + "_trackPositions.xml");
+    ofLogError("ofxTLPage::saveTrackPositions") << trackPositionsFile;
 	trackPositions.saveFile( trackPositionsFile );
 }
 
@@ -842,7 +899,8 @@ void ofxTLPage::setContainer(ofVec2f offset, float width){
 
 void ofxTLPage::setHeaderHeight(float newHeaderHeight){
 	headerHeight = newHeaderHeight;
-	recalculateHeight();
+	ofLogError("ofxTLPage::setHeaderHeight") << "saveTrackPositions()";
+    recalculateHeight();
 }
 
 void ofxTLPage::setDefaultTrackHeight(float newDefaultTrackHeight){

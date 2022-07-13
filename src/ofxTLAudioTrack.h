@@ -46,6 +46,8 @@ class ofxTLAudioTrack : public ofxTLTrack
 	
 	virtual void draw();
 	virtual void update();
+    
+    virtual void drawWaveforms();
 	
 	virtual bool loadSoundfile(string filepath);
 	virtual bool isSoundLoaded();
@@ -87,8 +89,13 @@ class ofxTLAudioTrack : public ofxTLTrack
 	virtual void setVolume(float volume);
 	virtual void setPan(float pan);
     
+    int getSampleRate(){return player.getSampleRate();}
+    int getNumChannels(){return player.getNumChannels();}
+    
 	virtual string getTrackType();
 
+    void setDrawFFT(bool b){bDrawFFT = b;}
+    
     //FFT for audio reactive
     void setFFTLogAverages(int minBandwidth = 88, int bandsPerOctave = 20);
     int getLogAverageMinBandwidth();
@@ -98,15 +105,28 @@ class ofxTLAudioTrack : public ofxTLTrack
 	vector<float>& getFFT();
     int getBufferSize();
     vector<float> &getCurrentBuffer(int _size = 512);
+    vector<float> &getCurrentBufferForChannel(int _size = 512, int channel = 1);///*
     vector<float> &getBufferForFrame(int _frame, int _size = 512);
-
+    
+    ofSoundBuffer& getCurrentSoundBuffer(int _size);//ofxAA
+    ofSoundBuffer& getCurrentSoundBufferMono(int _size);//ofxAA
+    
+    
+    ofSoundBuffer& getSoundBufferForFrame(int _frame, int _size);//ofxAA
+    ofSoundBuffer& getSoundBufferMonoForFrame(int _frame, int _size);//ofxAA
+    
+    
+    vector<ofPolyline>& getPreviews(){return previews;}
+    bool getShouldRecomputePreview(){return shouldRecomputePreview;}
+    void recomputePreview();
+    
   protected:
 	
 	float positionForSecond(float second);
     bool soundLoaded;
 	bool shouldRecomputePreview;
 	vector<ofPolyline> previews;
-	void recomputePreview();
+	
 	string soundFilePath;
 	float lastFFTPosition;
     float lastBufferPosition;
@@ -115,10 +135,12 @@ class ofxTLAudioTrack : public ofxTLTrack
     vector<float> dampened;
     vector<float> buffered;
     
+    ofSoundBuffer soundBuffered;//ofxAA
+    
 	float lastPercent;
     
 //	virtual void update(ofEventArgs& args);
-	ofOpenALSoundPlayer_TimelineAdditions player;
+    ofOpenALSoundPlayer_TimelineAdditions player;
 	ofRange computedZoomBounds;
 	float maxBinReceived;
     float dampening;
@@ -127,6 +149,8 @@ class ofxTLAudioTrack : public ofxTLTrack
     int averageSize;
     bool useEnvelope;
     vector<float> envelope;
+    
+    bool bDrawFFT = false;
 };
 
 #endif  // TIMELINE_AUDIO_INCLUDED

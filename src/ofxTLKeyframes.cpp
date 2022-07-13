@@ -111,7 +111,7 @@ void ofxTLKeyframes::draw(){
 	//float currentPercent = sampleAtTime(timeline->getCurrentTimeMillis());
 	float currentPercent = sampleAtTime(currentTrackTime());
 	ofFill();
-	ofRect(bounds.x, bounds.getMaxY(), bounds.width, -bounds.height*currentPercent);
+	ofDrawRectangle(bounds.x, bounds.getMaxY(), bounds.width, -bounds.height*currentPercent);
 
 	//***** DRAW KEYFRAME LINES
 	ofSetColor(timeline->getColors().keyColor);
@@ -127,7 +127,7 @@ void ofxTLKeyframes::draw(){
 		ofFill();
 		ofSetColor(timeline->getColors().highlightColor);
 		ofVec2f hoverKeyPoint = screenPositionForKeyframe( hoverKeyframe );
-		ofCircle(hoverKeyPoint.x, hoverKeyPoint.y, 6);
+		ofDrawCircle(hoverKeyPoint.x, hoverKeyPoint.y, 6);
 		ofPopStyle();
 	}
 
@@ -135,7 +135,7 @@ void ofxTLKeyframes::draw(){
 	ofSetColor(timeline->getColors().textColor);
 	ofNoFill();
 	for(int i = 0; i < keyPoints.size(); i++){
-		ofRect(keyPoints[i].x-1, keyPoints[i].y-1, 3, 3);
+		ofDrawRectangle(keyPoints[i].x-1, keyPoints[i].y-1, 3, 3);
 	}
 
 	//**** SELECTED KEYS
@@ -144,12 +144,14 @@ void ofxTLKeyframes::draw(){
 	for(int i = 0; i < selectedKeyframes.size(); i++){
 		if(isKeyframeIsInBounds(selectedKeyframes[i])){
 			ofVec2f screenpoint = screenPositionForKeyframe(selectedKeyframes[i]);
-			float keysValue = ofMap(selectedKeyframes[i]->value, 0, 1.0, valueRange.min, valueRange.max, true);
+			float keysValue = round(ofMap(selectedKeyframes[i]->value, 0, 1.0, valueRange.min, valueRange.max, true));
+            
+            //cout << "key: " << ofToString(selectedKeyframes[i]->value) << endl;
 			if(keysAreDraggable){
 				string frameString = timeline->formatTime(selectedKeyframes[i]->time);
 				timeline->getFont().drawString(ofToString(keysValue, 4), screenpoint.x+5, screenpoint.y-5);
 			}
-			ofCircle(screenpoint.x, screenpoint.y, 4);
+			ofDrawCircle(screenpoint.x, screenpoint.y, 4);
 		}
 	}
 
@@ -484,6 +486,7 @@ void ofxTLKeyframes::mouseDragged(ofMouseEventArgs& args, long millis){
             ofVec2f newScreenPosition;
             setKeyframeTime(selectedKeyframes[k], ofClamp(millis - selectedKeyframes[k]->grabTimeOffset,
 														  screenXToMillis(bounds.getMinX()), screenXToMillis(bounds.getMaxX())));
+            ofLogNotice("KEYS") << "new value: " << screenYToValue(args.y - selectedKeyframes[k]->grabValueOffset);
             selectedKeyframes[k]->value = screenYToValue(args.y - selectedKeyframes[k]->grabValueOffset);
             selectedKeyframes[k]->screenPosition = screenPositionForKeyframe(selectedKeyframes[k]);
         }
@@ -542,6 +545,7 @@ void ofxTLKeyframes::mouseReleased(ofMouseEventArgs& args, long millis){
 		//add a new one
 		selectedKeyframe = newKeyframe();
 		setKeyframeTime(selectedKeyframe,millis);
+        ofLogNotice("KEYS") << "new key: " << screenYToValue(args.y);
 		selectedKeyframe->value = screenYToValue(args.y);
 		keyframes.push_back(selectedKeyframe);
 		selectedKeyframes.push_back(selectedKeyframe);
@@ -913,21 +917,21 @@ void ofxTLKeyframes::simplifySelectedKeyframes( float tolerance ){
 
     if ( selectedKeyframes.size() > 2 )
     {
-         vector<ofPoint> pts;
+        std::vector<ofVec2f> pts;
         float startTime = (float)selectedKeyframes[0]->time;
         float timeNormalizationFactor = 1.0 / (float)selectedKeyframes.size();
         for(int k = 0; k < selectedKeyframes.size(); k++){
-            pts.push_back(ofPoint(((float)selectedKeyframes[k]->time - startTime)*timeNormalizationFactor,selectedKeyframes[k]->value));
+            pts.push_back(ofVec2f(((float)selectedKeyframes[k]->time - startTime)*timeNormalizationFactor,selectedKeyframes[k]->value));
         }
         deleteSelectedKeyframes();
 
-        ofPolyline line(pts);
-        line.simplify(tolerance);
-        int i = 0;
-        while ( i < line.size())
-        {
-           addKeyframeAtMillis(ofMap(line[i].y, 0.0, 1.0, valueRange.min, valueRange.max, false),(unsigned long long)(line[i].x / timeNormalizationFactor+startTime));
-           i++;
-        }
+//        ofPolyline line(pts);
+//        line.simplify(tolerance);
+//        int i = 0;
+//        while ( i < line.size())
+//        {
+//           addKeyframeAtMillis(ofMap(line[i].y, 0.0, 1.0, valueRange.min, valueRange.max, false),(unsigned long long)(line[i].x / timeNormalizationFactor+startTime));
+//           i++;
+//        }
     }
 }
