@@ -26,8 +26,8 @@ example-*/example-*.depend
 
 #VCPP files
 
-*.dll
-*.lib
+#*.dll
+#*.lib
 *.exe
 *.sdf
 *.opensdf

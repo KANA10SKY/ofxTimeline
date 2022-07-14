@@ -5,7 +5,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(OF_ROOT)\addons\ofxAudioDecoder\src;$(OF_ROOT)\addons\ofxAudioDecoder\libs\audiodecoder\include;$(OF_ROOT)\addons\ofxTimeline\libs\kiss\include;$(OF_ROOT)\addons\ofxTimeline\libs\ofOpenALSoundPlayer_TimelineAdditions\src;$(OF_ROOT)\addons\ofxTimeline\libs\openal\include;$(OF_ROOT)\addons\ofxTimeline\libs\sndfile\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>TIMELINE_VIDEO_INCLUDED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -14,14 +14,10 @@
       </Command>
     </PreBuildEvent>
     <Link>
-      <AdditionalLibraryDirectories>$(OF_ROOT)\addons\ofxTimeline\libs\openal\lib\vs\$(Platform_Actual);$(OF_ROOT)\addons\ofxTimeline\libs\sndfile\lib\vs\$(Platform_Actual);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>mfplat.lib;mfuuid.lib;libOpenAL32.dll.a;libsndfile-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>robocopy "$(OF_ROOT)/export/vs/$(Platform_Actual)/" "$(ProjectDir)bin/" "*.dll" /njs /njh /np /fp /bytes
-robocopy "$(OF_ROOT)/addons/ofxTimeline/libs/sndfile/export/vs/$(Platform_Actual)/" "$(ProjectDir)bin/" "*.dll" /njs /njh /np /fp /bytes
-if errorlevel 1 exit 0 else exit %errorlevel%</Command>
-    </PostBuildEvent>
+    <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>
