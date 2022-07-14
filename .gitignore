@@ -78,8 +78,8 @@ apps/*/*/obj
 
 #VCPP files
 
-*.dll
-*.lib
+# *.dll
+# *.lib
 *.exe
 *.sdf
 *.opensdf
@@ -101,6 +101,6 @@ ipch/
 */bin/timelineExample
 
 example-videoRenderer/bin/data/renders/
-oldExamples/
+# oldExamples/
 ofxTimelineLib.a
 *.opendb
